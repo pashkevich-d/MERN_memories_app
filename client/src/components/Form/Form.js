@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useStyles from "./styles";
 import { TextField, Button, Typography, Paper } from "@material-ui/core";
 import FileBase from "react-file-base64";
-import { useDispatch } from "react-redux";
-import { createPost } from "../../actions/posts";
+import { useDispatch, useSelector } from "react-redux";
+import { createPost, updatePost } from "../../actions/posts";
 
-const Form = () => {
+const Form = ({ currentId, setCurrentId }) => {
+  const posts = useSelector((state) => state.posts);
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -17,9 +18,33 @@ const Form = () => {
     selectedFile: "",
   });
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (currentId) {
+      let selectedPost = posts.filter((post) => post._id === currentId)[0];
+      setPostData(selectedPost);
+    }
+  }, [currentId]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(createPost(postData));
+
+    if (currentId) {
+      await dispatch(updatePost(currentId, postData));
+    } else {
+      await dispatch(createPost(postData));
+    }
+    clearForm();
+  };
+
+  const clearForm = () => {
+    setCurrentId(null);
+    setPostData({
+      creator: "",
+      title: "",
+      message: "",
+      tags: "",
+      selectedFile: "",
+    });
   };
 
   return (
@@ -29,7 +54,9 @@ const Form = () => {
         noValidate
         className={`${classes.form} ${classes.root}`}
         onSubmit={handleSubmit}>
-        <Typography variant='h6'>Creating a memory</Typography>
+        <Typography variant='h6'>
+          {currentId ? "Editing" : "Creating"} a memory
+        </Typography>
         <TextField
           value={postData.creator}
           onChange={(e) =>
@@ -60,7 +87,9 @@ const Form = () => {
         />
         <TextField
           value={postData.tags}
-          onChange={(e) => setPostData({ ...postData, tags: e.target.value })}
+          onChange={(e) =>
+            setPostData({ ...postData, tags: e.target.value.split(",") })
+          }
           name='tags'
           variant='outlined'
           label='Tags'
@@ -88,15 +117,7 @@ const Form = () => {
           variant='contained'
           color='secondary'
           size='small'
-          onClick={() =>
-            setPostData({
-              creator: "",
-              title: "",
-              message: "",
-              tags: "",
-              selectedFile: "",
-            })
-          }
+          onClick={clearForm}
           fullWidth>
           Clear
         </Button>
