@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardActions,
@@ -6,7 +6,9 @@ import {
   CardMedia,
   Button,
   Typography,
+  CircularProgress,
 } from "@material-ui/core/";
+import Skeleton from "@material-ui/lab/Skeleton";
 import ThumbUpAltIcon from "@material-ui/icons/ThumbUpAlt";
 import DeleteIcon from "@material-ui/icons/Delete";
 import MoreHorizIcon from "@material-ui/icons/MoreHoriz";
@@ -18,6 +20,18 @@ import { deletePost, likePost } from "../../../actions/posts";
 const Post = ({ post, setCurrentId }) => {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState({ type: "", id: null });
+
+  const handleLikePost = async () => {
+    setLoading({ type: "LIKE", id: post._id });
+    await dispatch(likePost(post._id));
+    setLoading({ type: "", id: null });
+  };
+  const handleDeletePost = async () => {
+    setLoading({ type: "DELETE", id: post._id });
+    await dispatch(deletePost(post._id));
+    setLoading({ type: "", id: null });
+  };
   return (
     <Card className={classes.card}>
       <CardMedia
@@ -62,18 +76,20 @@ const Post = ({ post, setCurrentId }) => {
         </Typography>
       </CardContent>
       <CardActions className={classes.cardActions}>
-        <Button
-          size='small'
-          color='primary'
-          onClick={() => dispatch(likePost(post._id))}>
-          <ThumbUpAltIcon fontSize='small' /> &nbsp; Like {post.likeCount}{" "}
-        </Button>
-        <Button
-          size='small'
-          color='primary'
-          onClick={() => dispatch(deletePost(post._id))}>
-          <DeleteIcon fontSize='small' /> Delete
-        </Button>
+        {loading.type === "LIKE" && loading.id === post._id ? (
+          <Skeleton variant='text' width={60} />
+        ) : (
+          <Button size='small' color='primary' onClick={handleLikePost}>
+            <ThumbUpAltIcon fontSize='small' /> &nbsp; Like {post.likeCount}{" "}
+          </Button>
+        )}
+        {loading.type === "DELETE" && loading.id === post._id ? (
+          <CircularProgress />
+        ) : (
+          <Button size='small' color='primary' onClick={handleDeletePost}>
+            <DeleteIcon fontSize='small' /> Delete
+          </Button>
+        )}
       </CardActions>
     </Card>
   );

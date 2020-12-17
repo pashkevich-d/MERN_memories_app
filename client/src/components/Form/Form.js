@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import useStyles from "./styles";
-import { TextField, Button, Typography, Paper } from "@material-ui/core";
+import {
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  CircularProgress,
+} from "@material-ui/core";
 import FileBase from "react-file-base64";
 import { useDispatch, useSelector } from "react-redux";
 import { createPost, updatePost } from "../../actions/posts";
@@ -17,6 +23,7 @@ const Form = ({ currentId, setCurrentId }) => {
     tags: "",
     selectedFile: "",
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (currentId) {
@@ -27,12 +34,13 @@ const Form = ({ currentId, setCurrentId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     if (currentId) {
       await dispatch(updatePost(currentId, postData));
     } else {
       await dispatch(createPost(postData));
     }
+    setLoading(false);
     clearForm();
   };
 
@@ -111,7 +119,7 @@ const Form = ({ currentId, setCurrentId }) => {
           size='large'
           type='submit'
           fullWidth>
-          Submit
+          {loading ? <CircularProgress color='secondary' /> : "Submit"}
         </Button>
         <Button
           variant='contained'
