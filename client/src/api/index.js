@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const url = "http://localhost:5000/posts";
+const url = process.env.REACT_APP_API_URL;
 
 export const fetchPosts = () => axios.get(url);
 export const createPost = (post) => axios.post(url, post);
